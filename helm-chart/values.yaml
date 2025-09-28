@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cs-1-6
+  namespace: matin
+  labels:
+    app: cs-1-6
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cs-1-6
+  template:
+    metadata:
+      namespace: matin
+      labels:
+        app: cs-1-6
+    spec:
+      containers:
+        - name: cs-1-6
+          image: cajuclc/cstrike-docker
+          resources:
+            requests:
+              memory: "250Mi"
+              cpu: "250m"
+            limits:
+              memory: "300Mi"
+              cpu: "1.5"
+          ports:
+            - containerPort: 27015
+          volumeMounts:
+          - name: intellare
+            mountPath: /home/steam/cstrike/cstrike/server.cfg
+            subPath: cs-1-6
+          - name: intellare
+            mountPath: /home/steam/cstrike/cstrike/addons/amxmodx/configs/users.ini
+            subPath: users
+      volumes:
+        - name: intellare
+          configMap:
+            name: intellare
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cs-1-6
+  namespace: matin
+spec:
+  type: LoadBalancer
+  selector:
+    app: cs-1-6
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80  
+    - name: game
+      protocol: UDP
+      port: 27015
+      targetPort: 27015 

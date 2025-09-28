@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cs-1-6
+  namespace: matin
+  labels:
+    app: cs-1-6
+spec:
+  replicas: {{ .Values.cs-1-6.replicas }}
+  selector:
+    matchLabels:
+      app: cs-1-6
+  template:
+    metadata:
+      namespace: matin
+      labels:
+        app: cs-1-6
+    spec:
+      containers:
+        - name: cs-1-6
+          image: {{ .Values.cs-1-6.spec.image }}
+          resources:
+            requests:
+              memory: {{ .Values.cs-1-6.spec.resources.requests.memory }}
+              cpu: {{ .Values.cs-1-6.spec.resources.requests.cpu }}
+            limits:
+              memory: {{.Values.cs-1-6.spec.resources.limits.memory }}
+              cpu: {{ .Values.cs-1-6.spec.resources.limits.cpu }}
+          ports:
+            - containerPort: {{ .Values.cs-1-6.spec.ports.containerPort }}
+          volumeMounts:
+          - name: intellare
+            mountPath: /home/steam/cstrike/cstrike/server.cfg
+            subPath: {{ .Values.cs-1-6.spec.image }}
+          - name: intellare
+            mountPath: /home/steam/cstrike/cstrike/addons/amxmodx/configs/users.ini
+            subPath: {{ .Values.cs-1-6.spec.image }}
+      volumes:
+        - name: {{ .Values.cs-1-6.spec.image }}
+          configMap:
+            name: {{ .Values.cs-1-6.spec.image }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cs-1-6
+  namespace: matin
+spec:
+  type: {{ .Values.cs-1-6.spec.image }}
+  selector:
+    app: cs-1-6
+  ports:
+    - name: http
+      protocol: {{ .Values.cs-1-6.spec.image }}
+      port: {{ .Values.cs-1-6.spec.image }}
+      targetPort: {{ .Values.cs-1-6.spec.image }} 
+    - name: game
+      protocol: {{ .Values.cs-1-6.spec.image }}
+      port: {{ .Values.cs-1-6.spec.image }}
+      targetPort: {{ .Values.cs-1-6.spec.image }}    
