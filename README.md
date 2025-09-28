@@ -1,120 +1,129 @@
-Got it 👍 You want a `README.md` for your GitHub repo that contains Kubernetes manifests and Docker image build instructions for **Counter-Strike 1.6 (cs-1-6)** server. Here’s a clean and professional draft:
+Got it 👍 I’ll remove the `image-cs-1-6/` part since you don’t want to keep Docker image build instructions in the README. Here’s the **cleaned-up README.md** with **Helm chart** instructions only:
 
----
+```md
+# cs-1.6 · Kubernetes / Helm Counter-Strike 1.6 Server
 
-# Counter-Strike 1.6 – Kubernetes Deployment
-
-This repository provides Kubernetes manifests and Docker build instructions for running a **Counter-Strike 1.6 dedicated server** inside a Kubernetes cluster.
-
-## 🚀 Features
-
-* Dockerfile for building a lightweight CS 1.6 dedicated server image
-* Kubernetes manifests for deployment, service, and persistent storage
-* Configurable environment variables for game settings
-* Supports external access via NodePort / LoadBalancer
+This repository contains **Kubernetes manifests** and a **Helm chart** to deploy a **Counter-Strike 1.6** dedicated server on Kubernetes.
 
 ---
 
 ## 📂 Repository Structure
 
 ```
+
 .
-├── manifests/                # Kubernetes manifests
-│   ├── deployment.yaml       # CS 1.6 server Deployment
-│   ├── service.yaml          # Exposes server (NodePort/LoadBalancer)
-│   └── pvc.yaml              # Persistent volume for configs/maps
-├── Dockerfile                # Image build instructions
-├── .dockerignore
-├── README.md
-```
+├── deployment-ingress-cluster-cs-1.6.yaml    # Kubernetes manifest for deployment + ingress setup
+├── configmap.yaml                             # ConfigMap with server.cfg + users.ini
+├── helm-chart/                                # Helm chart for CS 1.6 deployment
+└── README.md
+
+````
 
 ---
 
-## 🔨 Build Docker Image
+## ☸️ Kubernetes Deployment (manifests)
 
-You can build the Docker image locally or push it to your own registry:
-
-```bash
-# Clone repo
-git clone https://github.com/your-org/cs-1-6-k8s.git
-cd cs-1-6-k8s
-
-# Build Docker image
-docker build -t your-dockerhub-user/cs16-server:latest .
-
-# Push to registry
-docker push your-dockerhub-user/cs16-server:latest
-```
-
----
-
-## ☸️ Deploy on Kubernetes
-
-Make sure your cluster is running and `kubectl` is configured.
+You can deploy using the plain Kubernetes manifests:
 
 ```bash
-# Apply manifests
-kubectl apply -f manifests/
-```
+kubectl apply -f configmap.yaml
+kubectl apply -f deployment-ingress-cluster-cs-1.6.yaml
+````
 
-Check status:
+Then verify:
 
 ```bash
 kubectl get pods
 kubectl get svc
+kubectl get ingress
 ```
 
 ---
 
-## 🎮 Connect to Server
+## 📦 Helm Chart
 
-1. Get the external IP / NodePort:
+This repo includes a Helm chart under `helm-chart/` to simplify installation, upgrades, and customization via values. Use it to deploy (or upgrade) your server setup more cleanly.
 
-   ```bash
-   kubectl get svc cs16-service
-   ```
+### Install with Helm
 
-2. Open **Counter-Strike 1.6 client**
+```bash
+helm install cs16 ./helm-chart -n matin --create-namespace
+```
 
-3. Add server with:
+### Upgrade / Change Config
 
-   ```
-   <EXTERNAL-IP>:<PORT>
-   ```
+```bash
+helm upgrade cs16 ./helm-chart -n matin
+```
 
----
-
-## ⚙️ Configuration
-
-You can customize server settings by editing environment variables inside `deployment.yaml`:
+### Example `values.yaml`
 
 ```yaml
-env:
-  - name: SERVER_NAME
-    value: "CS 1.6 Kubernetes Server"
-  - name: RCON_PASSWORD
-    value: "changeme"
-  - name: MAX_PLAYERS
-    value: "16"
-  - name: MAP
-    value: "de_dust2"
+replicaCount: 1
+
+image:
+  repository: yourdockeruser/cs16-server
+  tag: latest
+
+service:
+  type: LoadBalancer
+  gamePort: 27015
+  httpPort: 80
+
+config:
+  serverCfg: |
+    hostname "intellare"
+    sv_name "intellare"
+    rcon_password "intellare"
+    maxplayers "32"
+    mp_roundtime "4"
+    mp_startmoney "800"
+    # … rest of server.cfg …
+  usersIni: |
+    "damesstos" "" "abcdefghijklmnopqrstu" ""
+    "behnam" "" "abcdefghijklmnopqrstu" ""
+    "mehrdad" "" "abcdefghijklmnopqrstu" ""
+```
+
+You can override these in your own `my-values.yaml`:
+
+```bash
+helm install cs16 ./helm-chart -f my-values.yaml -n matin
 ```
 
 ---
 
-## 📌 Notes
+## 🎮 Connect to the Server
 
-* Default port is `27015/UDP`.
-* Persistent storage (`pvc.yaml`) is optional, but recommended for saving configs and maps.
-* Tested on Kubernetes v1.27+.
+1. Get the external IP (or hostname) from your Service or Ingress:
+
+   ```bash
+   kubectl get svc -n matin
+   ```
+
+2. In **Counter-Strike 1.6 client**, join with:
+
+   ```
+   <EXTERNAL-IP>:27015
+   ```
 
 ---
 
-## 📜 License
+## ⚙️ Notes
 
-This project is licensed under the MIT License.
+* All server settings (`server.cfg` and `users.ini`) are controlled via Helm `values.yaml`.
+* Default port: **27015/UDP**
+* Make sure your cloud firewall or cluster allows UDP traffic on this port.
+* Works with Kubernetes v1.27+
 
 ---
 
-Do you also want me to include a **sample `deployment.yaml` and `service.yaml` snippet** directly inside the README for quick copy-paste, or should we keep it minimal and only reference the `manifests/` folder?
+## 📝 License
+
+This project is licensed under the **MIT License**.
+(Include `LICENSE` file in repo.)
+
+---
+
+👉 Do you also want me to **generate the full `helm-chart/` folder structure** (with `Chart.yaml`, `values.yaml`, and templates) so you can just drop it into your repo?
 
